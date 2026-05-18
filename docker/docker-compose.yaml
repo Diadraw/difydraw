@@ -211,16 +211,14 @@ services:
       - sh
       - -c
       - |
-        FLAG_FILE="/app/api/storage/.init_permissions"
-        if [ -f "$${FLAG_FILE}" ]; then
-          echo "Permissions already initialized. Exiting."
-          exit 0
-        fi
         echo "Initializing permissions for /app/api/storage"
-        chown -R 1001:1001 /app/api/storage && touch "$${FLAG_FILE}"
+        chown -R 1001:1001 /app/api/storage
+        echo "Initializing permissions for /data (redis)"
+        chown -R 999:999 /data
         echo "Permissions initialized. Exiting."
     volumes:
       - ./volumes/app/storage:/app/api/storage
+      - ./volumes/redis/data:/data
     restart: "no"
 
   # API service
@@ -484,7 +482,7 @@ services:
       # Mount the redis data directory to the container.
       - ./volumes/redis/data:/data
     # Set the redis password when startup redis server.
-    command: redis-server --requirepass ${REDIS_PASSWORD:-difyai123456}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-difyai123456} --stop-writes-on-bgsave-error no
     healthcheck:
       test:
         [
