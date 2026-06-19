@@ -381,6 +381,10 @@ services:
         required: false
       - ./.env
     environment:
+      # Next.js standalone binds to $HOSTNAME, which Docker auto-sets to the
+      # container id; force 0.0.0.0 so nginx can reach web on port 3000.
+      HOSTNAME: ${WEB_HOSTNAME:-0.0.0.0}
+      PORT: ${WEB_PORT:-3000}
       CONSOLE_API_URL: ${CONSOLE_API_URL:-}
       SERVER_CONSOLE_API_URL: ${SERVER_CONSOLE_API_URL:-http://api:5001}
       APP_API_URL: ${APP_API_URL:-}
