@@ -31,6 +31,12 @@ else
 fi
 export ACME_CHALLENGE_LOCATION
 
+# Auto-detect the embedded DNS resolver so proxy_pass can resolve upstreams
+# dynamically (works for both Docker's 127.0.0.11 and Podman/aardvark-dns).
+# This stops nginx from caching a stale container IP that changes on redeploy.
+NGINX_DNS_RESOLVER="${NGINX_DNS_RESOLVER:-$(awk '/^nameserver/{print $2; exit}' /etc/resolv.conf)}"
+export NGINX_DNS_RESOLVER
+
 env_vars=$(printenv | cut -d= -f1 | sed 's/^/$/g' | paste -sd, -)
 
 envsubst "$env_vars" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf

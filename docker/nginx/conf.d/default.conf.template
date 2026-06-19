@@ -4,18 +4,26 @@ server {
     listen ${NGINX_PORT};
     server_name ${NGINX_SERVER_NAME};
 
+    # Resolve upstreams dynamically. Container IPs change on every redeploy, so a
+    # statically-resolved proxy_pass (http://web:3000) keeps hitting the stale IP
+    # cached at startup and returns 502. Using variables + resolver forces nginx
+    # to re-resolve via the embedded DNS on each request.
+    resolver ${NGINX_DNS_RESOLVER} valid=10s ipv6=off;
+    set $upstream_api api:5001;
+    set $upstream_web web:3000;
+    set $upstream_plugin plugin_daemon:5002;
+
     location /console/api {
-      proxy_pass http://api:5001;
+      proxy_pass http://$upstream_api;
       include proxy.conf;
     }
 
     location /api {
-      proxy_pass http://api:5001;
+      proxy_pass http://$upstream_api;
       include proxy.conf;
     }
 
     location /socket.io/ {
-      resolver 127.0.0.11 valid=30s ipv6=off;
       set $socket_io_upstream ${NGINX_SOCKET_IO_UPSTREAM};
       proxy_pass http://$socket_io_upstream;
       include proxy.conf;
@@ -25,46 +33,46 @@ server {
     }
 
     location /v1 {
-      proxy_pass http://api:5001;
+      proxy_pass http://$upstream_api;
       include proxy.conf;
     }
 
     location /openapi {
-      proxy_pass http://api:5001;
+      proxy_pass http://$upstream_api;
       include proxy.conf;
     }
 
     location /files {
-      proxy_pass http://api:5001;
+      proxy_pass http://$upstream_api;
       include proxy.conf;
     }
 
     location /explore {
-      proxy_pass http://web:3000;
+      proxy_pass http://$upstream_web;
       include proxy.conf;
     }
 
     location /e/ {
-      proxy_pass http://plugin_daemon:5002;
+      proxy_pass http://$upstream_plugin;
       proxy_set_header Dify-Hook-Url $scheme://$host$request_uri;
       include proxy.conf;
     }
 
     location / {
-      proxy_pass http://web:3000;
+      proxy_pass http://$upstream_web;
       include proxy.conf;
     }
 
     location /mcp {
-      proxy_pass http://api:5001;
+      proxy_pass http://$upstream_api;
       include proxy.conf;
     }
 
     location /triggers {
-      proxy_pass http://api:5001;
+      proxy_pass http://$upstream_api;
       include proxy.conf;
     }
-    
+
     # placeholder for acme challenge location
     ${ACME_CHALLENGE_LOCATION}
 
