@@ -696,9 +696,18 @@ services:
     depends_on:
       - api
       - web
-    ports:
-      - "${EXPOSE_NGINX_PORT:-80}:${NGINX_PORT:-80}"
-      - "${EXPOSE_NGINX_SSL_PORT:-443}:${NGINX_SSL_PORT:-443}"
+    # Host ports not published: Dokploy/Traefik routes to this container over
+    # dokploy-network on port 80. Re-add a "ports:" block only for direct access.
+    networks:
+      - default
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dify.rule=Host(`dify.diadraw.vip`)"
+      - "traefik.http.routers.dify.entrypoints=websecure"
+      - "traefik.http.routers.dify.tls.certresolver=letsencrypt"
+      - "traefik.http.services.dify.loadbalancer.server.port=80"
+      - "traefik.docker.network=dokploy-network"
 
   # The Weaviate vector store.
   weaviate:
@@ -1194,6 +1203,9 @@ networks:
   opensearch-net:
     driver: bridge
     internal: true
+  # Shared with Dokploy's Traefik so the proxy can reach the nginx service.
+  dokploy-network:
+    external: true
 
 volumes:
   oradata:
