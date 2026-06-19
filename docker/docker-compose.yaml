@@ -692,6 +692,9 @@ services:
         "cp /docker-entrypoint-mount.sh /docker-entrypoint.sh && sed -i 's/\r$$//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh && /docker-entrypoint.sh",
       ]
     environment:
+      # Bump this to force Dokploy to recreate nginx (and regenerate its config
+      # from the template) when only the template/upstreams change.
+      NGINX_CONFIG_REV: "2"
       NGINX_SERVER_NAME: ${NGINX_SERVER_NAME:-_}
       NGINX_HTTPS_ENABLED: ${NGINX_HTTPS_ENABLED:-false}
       NGINX_SSL_PORT: ${NGINX_SSL_PORT:-443}
