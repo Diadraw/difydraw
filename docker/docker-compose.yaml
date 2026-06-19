@@ -264,8 +264,10 @@ services:
       retries: 3
       start_period: 30s
     networks:
-      - ssrf_proxy_network
-      - default
+      ssrf_proxy_network:
+      default:
+        aliases:
+          - difyapi
 
   # WebSocket service for workflow collaboration.
   api_websocket:
@@ -410,6 +412,12 @@ services:
       ENABLE_WEBSITE_JINAREADER: ${ENABLE_WEBSITE_JINAREADER:-true}
       ENABLE_WEBSITE_FIRECRAWL: ${ENABLE_WEBSITE_FIRECRAWL:-true}
       ENABLE_WEBSITE_WATERCRAWL: ${ENABLE_WEBSITE_WATERCRAWL:-true}
+    # Unique alias on the default network so nginx resolves OUR web, not a
+    # foreign "web" service that shares Dokploy's dokploy-network.
+    networks:
+      default:
+        aliases:
+          - difyweb
 
   # The PostgreSQL database.
   db_postgres:
@@ -547,8 +555,10 @@ services:
         required: false
       - ./.env
     networks:
-      - ssrf_proxy_network
-      - default
+      ssrf_proxy_network:
+      default:
+        aliases:
+          - difyplugin
     environment:
       DB_DATABASE: ${DB_PLUGIN_DATABASE:-dify_plugin}
       DB_SSL_MODE: ${DB_SSL_MODE:-disable}

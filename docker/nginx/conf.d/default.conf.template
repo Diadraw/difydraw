@@ -9,9 +9,9 @@ server {
     # cached at startup and returns 502. Using variables + resolver forces nginx
     # to re-resolve via the embedded DNS on each request.
     resolver ${NGINX_DNS_RESOLVER} valid=10s ipv6=off;
-    set $upstream_api api:5001;
-    set $upstream_web web:3000;
-    set $upstream_plugin plugin_daemon:5002;
+    set $upstream_api difyapi:5001;
+    set $upstream_web difyweb:3000;
+    set $upstream_plugin difyplugin:5002;
 
     location /console/api {
       proxy_pass http://$upstream_api;
